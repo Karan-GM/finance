@@ -9,13 +9,12 @@ import pandas as pd
 import numpy as np
 
 def get_return(tickers, start_date, end_date, periodicity, total_return):
-    data = datareader.get_stock_data(tickers, start_date, end_date, periodicity)
-    print(data)
     result = {} 
     for ticker in tickers:
         ticker_result = {}
-        data_parsed = parser_data(data[ticker], total_return)
-#         result[ticker] = ticker_return.iloc[-1,0]
+        data = datareader.get_stock_data(ticker, start_date, end_date, periodicity)
+        print(data)
+        data_parsed = parser_data(data, total_return)
         profits = (data_parsed/data_parsed.iloc[0,0])-1
         daily_returns = (data_parsed/data_parsed.shift(1))-1
         ticker_result['profits'] = profits.iloc[:,0].fillna(0).values.tolist()
@@ -31,12 +30,12 @@ def parser_data(data, total_return):
 
 
 def get_risks(tickers, weights, start_date, end_date, periodicity, duration):
-    data = datareader.get_stock_data(tickers, start_date, end_date, periodicity)
     weights = np.array(weights, dtype="float64")
-    print(data)
     returns_df = pd.DataFrame() 
     for ticker in tickers:
-        returns_df[ticker] = (data[ticker]['Close']/data[ticker]['Close'].shift(1))-1
+        data = datareader.get_stock_data(ticker, start_date, end_date, periodicity)
+        print(data)
+        returns_df[ticker] = (data['Close']/data['Close'].shift(1))-1
     portfolio_volatility = np.dot(weights.T, np.dot(returns_df.cov() * 250, weights)) ** 0.5
     marginal_contribution = np.dot(weights.T, returns_df.cov()*250) / portfolio_volatility
     component_contribution = marginal_contribution * weights 
