@@ -204,7 +204,7 @@ def display_content(n_clicks, choose_option, tickers, start_date, end_date, peri
             error_message = 'Error: Make sure number of weights separated by comma are {} in number and sum up to 1'.format(len(tickers)) 
             return html.H3(error_message, style={'text-align': 'center', 'color': 'red'})
         else:
-            risks_df, component_contribution = service.get_risks(tickers, weights_float, start_date, end_date, periodicity, rolling_period)
+            risks_df, component_contribution = service.get_risks(tickers, weights_float, start_date, end_date, total_return, periodicity, rolling_period)
             component_contribution_list = [str(i) for i in component_contribution]
             trace1 = go.Scatter(x=risks_df.index,
                                  y=risks_df['volatility'], 
