@@ -24,10 +24,16 @@ def get_returns():
     periodicity = request.args.get('periodicity')
     total_return = request.args.get('total_return')
     print("Assets: "+assets+ " Start Date: "+start_date+ " End Date: "+end_date+ " Periodicity: "+periodicity+ " Total Return: "+total_return)
-    returns = service.get_return(tickers, start_date, end_date, periodicity, total_return)
-    print(returns)
+    returns_df = service.get_return(tickers, start_date, end_date, periodicity, total_return)
+    result = {}
+    result['ticker'] = tickers
+    result['datetime'] = returns_df.index.values.tolist()
+    returns_list = []
+    for ticker in tickers:
+        returns_list.append(returns_df[ticker].fillna(0).values.tolist())
+    result['daily_returns'] = returns_list
     response = app.response_class(
-        response=json.dumps(returns),
+        response=json.dumps(result),
         status=200,
         mimetype='application/json'
     )
@@ -38,19 +44,22 @@ def get_risks():
     print(request.query_string)
     assets = request.args.get('assets')
     tickers = [x.strip() for x in assets.split(',')]
-    weights = [x.strip() for x in request.args.get('weights').split(',')]
     start_date = request.args.get('start_date')
     end_date = request.args.get('end_date')
     periodicity = request.args.get('periodicity')
-    duration = request.args.get('duration')
-    print("Assets: "+assets+ " Weights: "+request.args.get('weights')+ " Start Date: "+start_date+ " End Date: "+end_date+ " Periodicity: "+periodicity+ " Duration: "+duration)
-    risks = service.get_risks(tickers, weights, start_date, end_date, periodicity, duration)
+    total_return = request.args.get('total_return')
+    weights = [x.strip() for x in request.args.get('weights').split(',')]
+    window = int(request.args.get('window'))
+    print("Assets: "+assets+ " Weights: "+request.args.get('weights')+ " Start Date: "+start_date+ " End Date: "+end_date+ " Periodicity: "+periodicity+ " Window: "+str(window))
+    risks_df, component_contribution = service.get_risks(tickers, weights, start_date, end_date, total_return, periodicity, window)
+    result = {}
+    result["tickers"] = tickers
+    result['datetime'] = risks_df.index.values.tolist()
+    result["total_risk"] = risks_df['volatility'].values.tolist()
+    result["component_contribution"] = component_contribution.tolist()
     response = app.response_class(
-        response=json.dumps(risks),
+        response=json.dumps(result),
         status=200,
         mimetype='application/json'
     )
     return response
-    
-if __name__ == '__main__':  # Script executed directly?
-    app.run()
