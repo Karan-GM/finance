@@ -13,13 +13,17 @@ def get_closing_price(tickers, start_date, end_date, periodicity):
     for ticker in tickers:
         data = datareader.get_quandl_stock_data(ticker, start_date, end_date, periodicity)
         closing_price_df[ticker] = data['Close']
+    ## Handling Same Start-End Dates
+    closing_price_df.dropna(inplace=True)
     return(closing_price_df)
 
 def get_adjusted_closing_price(tickers, start_date, end_date, periodicity):
     closing_price_df = pd.DataFrame()
     for ticker in tickers:
         data = datareader.get_quandl_stock_data(ticker, start_date, end_date, periodicity)
-        closing_price_df[ticker] = data['Adj Close']
+        closing_price_df[ticker] = data['Adj. Close']
+    ## Handling Same Start-End Dates
+    closing_price_df.dropna(inplace=True)
     return(closing_price_df)
 
 def get_return(tickers, start_date, end_date, periodicity, total_return):
@@ -28,7 +32,9 @@ def get_return(tickers, start_date, end_date, periodicity, total_return):
         data = datareader.get_quandl_stock_data(ticker, start_date, end_date, periodicity)
         data_parsed = parser_data(data, total_return)
         daily_returns = (data_parsed/data_parsed.shift(1))-1
-        returns_df[ticker] = daily_returns.iloc[:,0].fillna(0)
+        returns_df[ticker] = daily_returns.iloc[:,0]
+    ## Handling Same Start-End Dates
+    returns_df.dropna(inplace=True)
     return(returns_df)  
 
 def parser_data(data, total_return):
@@ -47,7 +53,8 @@ def get_annulizing_multiplier(periodicity):
         
 def calculate_portfolio_volatility(weights, returns_df, periodicity, window):  
     covariance_df = returns_df.rolling(window).cov().dropna()
-    date_index_list = list(set(covariance_df.index.get_level_values(0).values))
+    date_index_list = covariance_df.index.get_level_values(0).drop_duplicates(keep='first')
+#     date_index_list = list(set(covariance_df.index.get_level_values(0).values))
     covariances = covariance_df.values.reshape(len(date_index_list), len(returns_df.columns), len(returns_df.columns))
     annulizing_multiplier = get_annulizing_multiplier(periodicity)
     portfolio_volatility_list = []
@@ -66,6 +73,8 @@ def get_risks(tickers, weights, start_date, end_date, total_return, periodicity,
     for ticker in tickers:
         data = datareader.get_quandl_stock_data(ticker, start_date, end_date, periodicity)
         risks_df[ticker] = (data['Close']/data['Close'].shift(1))-1
+    ## Handling Same Start-End Dates
+    risks_df.dropna(inplace=True)
     date_index_list, portfolio_volatility_list, component_contribution_list = calculate_portfolio_volatility(weights, risks_df, periodicity, window)
     result_df = pd.DataFrame(index=date_index_list)
     result_df['volatility'] = portfolio_volatility_list
