@@ -12,13 +12,13 @@ import plotly.graph_objs as go
 import service
 import pandas as pd
 from datetime import datetime
-import math
 import flask
+import math
 from controller import app as server
 
 app = dash.Dash(__name__, server=server, url_base_pathname='/dashboard')
 
-nsdq = pd.read_csv('NASDAQcompanylist.csv')
+nsdq = pd.read_csv('input/NASDAQcompanylist.csv')
 nsdq.set_index('Symbol', inplace=True)
 options = []
 for tic in nsdq.index:
