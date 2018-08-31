@@ -20,7 +20,7 @@ Personal project as a data scientist in finance industry
 	  * pip install -r requirements.txt<br/>
 
 6. Run the program<br/> 
-	  * python app.py<br/> 
+	  * python portfolio/app.py<br/> 
 
 7. To visit the dashboard<br/> 
 	  * http://127.0.0.1:5000/dashboard<br/> 
